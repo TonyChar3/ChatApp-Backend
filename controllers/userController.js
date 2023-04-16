@@ -1,6 +1,5 @@
 import asyncHandler from 'express-async-handler';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import User from '../models/userModels.js';
 
 //@desc Register new user
@@ -14,7 +13,6 @@ const registerUser = asyncHandler( async (req,res) => {
     if(!username || !email || !password){
         // send status of 400
         res.status(400);
-
         // throw a the Error for the client to see
         throw new Error("All fields are mandatory");
     }
@@ -52,39 +50,14 @@ const registerUser = asyncHandler( async (req,res) => {
     res.send({ message: "user registered"});
 });
 
-//@desc login the user
-//@route POST /user/login
+//@desc Logout the current user
+//@route GET /user/logout
 //@access public
-const loginUser = asyncHandler( async (req,res) => {
-    // deconstruct the data from the request body
-    const { email, password } = req.body;
-    // verify if there's no empty data
-    if(!email || !password){
-        res.status(400);
-        throw new Error("Please fill out all mandatory fields")
-    }
-    // check the db for the matching data
-    const user = await User.findOne({ email })
-
-    if(user && (await bcrypt.compare(password, user.password))){
-        // login and create a new JWT token
-        const accessToken = jwt.sign({
-            user: {
-                username: user.username,
-                email: user.email,
-                id: user.id
-            },
-        },
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "15m"}
-        );
-        res.status(200).json({ accessToken });
-    } else {
-        res.status(401);
-        throw new Error("Invalid credentials");
-    }
-    
-    res.send({ message: "user login"});
+const logoutUser = asyncHandler( async(req,res,next) => {
+    req.logout(function(err){
+        if(err) { return next(err); }
+        res.redirect('/login')
+    })
 });
 
 //@desc The current user
@@ -94,4 +67,4 @@ const currentUser = asyncHandler( async(req,res) => {
     res.json(req.user);
 });
 
-export {registerUser, loginUser, currentUser};
+export {registerUser, logoutUser, currentUser};

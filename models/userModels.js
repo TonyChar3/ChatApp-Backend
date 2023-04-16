@@ -13,7 +13,29 @@ const userSchema = mongoose.Schema({
     password: {
         type: String,
         required: [true, "Please add a password"],
-    }
+    },
+    invitations: [{
+        sender_id: {
+            type: String
+        },
+        sent_from: {
+            type: String
+        },
+        sender_email: {
+            type: String
+        }
+    }],
+    contact_list: [{
+        chatroom_id: {
+            type: Number
+        },
+        confirmed: {
+            type: String
+        },
+        contact_id: {
+            type: String
+        }
+    }]
 },
 {
     timestamps: true,
