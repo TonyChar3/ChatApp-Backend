@@ -105,25 +105,55 @@ const createContact = asyncHandler(async(req,res) => {
 //@route DELETE /contacts/contact
 // access private
 const deleteContact = asyncHandler(async(req, res) => {
-    // deconstruct the request
-    const { contct_id } = req.body;
 
-    // Get the access to the current user
-    const user = await User.findById(req.user.id)
+    try{
+        // deconstruct the request
+        const { contct_id, contct_status } = req.body;
 
-    // delete the invite
-    // find the index of the invite
-    const indexInvite = await user.contact_list.findIndex(contact => contact.contact_id.toString() === contct_id);
+        // Get the access to the current user
+        const user = await User.findById(req.user.id)
 
-    if(indexInvite !== -1){
-        // delete the invite from the invitations list
-        user.contact_list.splice(indexInvite, 1);
-        // save the updates
-        await user.save();
+        // delete the invite
+        // find the index of the invite
+        const indexInvite = await user.contact_list.findIndex(contact => contact.contact_id.toString() === contct_id);
+
+        if(indexInvite !== -1){
+            // if confirmed === "true"
+            if(contct_status === "true"){
+                console.log("status", contct_status)
+                // find the contact in the user DB
+                const contct_user = await User.findById(contct_id)
+
+                // Update the sender contact list by adding the chatroom_id and setting confirmed to true
+                const contact_user_Index = contct_user.contact_list.findIndex(contact => contact.contact_id.toString() === user.id.toString());
+
+                // if nothing was found
+                if (contact_user_Index === -1) {
+                    res.status(404).json({ message: "Error...user non-existant" });
+                    throw new Error("Error...user non-existant");
+                }
+
+                // Set confirmed to 'true'
+                contct_user.contact_list[contact_user_Index].confirmed = false;
+
+                // save the update
+                await contct_user.save();
+                
+                // delete the chatroom
+                // delete the contact from the list
+            } else if (contct_status === "false"){
+                console.log("status", contct_status)
+                // simply delete the contact
+            }
+
+            // // delete the invite from the invitations list
+            // user.contact_list.splice(indexInvite, 1);
+            // // save the updates
+            // await user.save();
+        }
+    } catch(err){
+        next(err)
     }
-
-    console.log(user)
-    res.send({ message: "contact delete" })
 });
 
 export {getAllContacts, createContact, deleteContact};

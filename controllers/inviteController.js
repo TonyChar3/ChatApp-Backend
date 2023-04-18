@@ -8,7 +8,7 @@ import Chatroom from '../models/chatroomModels.js';
 // access private
 const acceptInvite = asyncHandler( async (req,res,next) => {
     // deconstruct the sender email and username
-    const { sender_email, sender_id } = req.body;
+    const { sender_id } = req.body;
 
     // Fetch the sender info from the db
     const sender = await User.findById(sender_id)
@@ -36,11 +36,9 @@ const acceptInvite = asyncHandler( async (req,res,next) => {
     do {
         // Generate a chatroom_id number
         random_id = Math.floor(Math.random()*1000);
-        console.log(random_id)
 
         // make sure it is unique (By looking in the chatroom DB)
         const room_duplicate = await Chatroom.findOne({ room_id: random_id })
-        console.log(room_duplicate)
 
         // check if it is a duplicate or not
         if(room_duplicate){

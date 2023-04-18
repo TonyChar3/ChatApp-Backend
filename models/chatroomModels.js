@@ -20,10 +20,6 @@ const chatroomSchema = mongoose.Schema({
             type: Date,
             default: Date.now
         },
-        msg_id: {
-            type: Number,
-            required: true
-        },
         msg_user: {
             type: String,
             required: true
@@ -35,8 +31,16 @@ const chatroomSchema = mongoose.Schema({
         msg_user_id: {
             type: String,
             required: true
+        },
+        _id:{
+            type: String,
+            required: true
         }
     }]
-})
+},
+{
+    timestamps: true
+}
+)
 
 export default mongoose.model("Chatroom", chatroomSchema);
