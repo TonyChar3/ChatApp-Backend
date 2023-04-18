@@ -84,7 +84,6 @@ const newChatMsg = asyncHandler( async(req,res,next) => {
     } catch(err){
         next(err)
     }
- 
 });
 
 //@desc Delete a Message from the chat
@@ -137,18 +136,23 @@ const deleteChatMsg = asyncHandler( async(req,res,next) => {
 //@route GET /chat/chatMsg
 // access private
 const allChatMsg = asyncHandler( async(req,res,next) => {
-    // deconstruct the room id
-    const { room_id } = req.body;
 
-    // fetch the chatroom
-    const chatroom = await Chatroom.findOne({ room_id: room_id })
+    try{
+        // deconstruct the room id
+        const { room_id } = req.body;
 
-    // verify if it was found
-    if (!chatroom) {
-        res.status(404).json({ message: "The room was not found in our database" });
-        throw new Error("The room was not found in our database");
-    } else{
-        res.status(200).json(chatroom.messages)
+        // fetch the chatroom
+        const chatroom = await Chatroom.findOne({ room_id: room_id })
+
+        // verify if it was found
+        if (!chatroom) {
+            res.status(404).json({ message: "The room was not found in our database" });
+            throw new Error("The room was not found in our database");
+        } else{
+            res.status(200).json(chatroom.messages)
+        }
+    } catch(err){
+        next(err)
     }
 });
 

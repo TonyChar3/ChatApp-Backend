@@ -1,23 +1,29 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModels.js';
+import Chatroom from '../models/chatroomModels.js';
 
 
 //@desc Get all the contacts
 //@route GET /contacts/contact
 // access private
 const getAllContacts = asyncHandler(async(req,res) => {
-    // fetch the user
-    const user = await User.findById(req.user.id)
 
-    // if empty send a empty contact list message back
-    if(user.contact_list.length === 0){
-        // send a message to notify the user the array is empty
-        res.send({ message: "Add contacts :)"})
-    } else {
-        // else send the contacts objects
-        user.contact_list.forEach(element => {
-            res.send(element)
-        });
+    try{
+        // fetch the user
+        const user = await User.findById(req.user.id)
+
+        // if empty send a empty contact list message back
+        if(user.contact_list.length === 0){
+            // send a message to notify the user the array is empty
+            res.send({ message: "Add contacts :)"})
+        } else {
+            // else send the contacts objects
+            user.contact_list.forEach(element => {
+                res.send(element)
+            });
+        }
+    } catch(err){
+        next(err)
     }
 });
 
@@ -120,7 +126,7 @@ const deleteContact = asyncHandler(async(req, res) => {
         if(indexInvite !== -1){
             // if confirmed === "true"
             if(contct_status === "true"){
-                console.log("status", contct_status)
+
                 // find the contact in the user DB
                 const contct_user = await User.findById(contct_id)
 
@@ -139,17 +145,55 @@ const deleteContact = asyncHandler(async(req, res) => {
                 // save the update
                 await contct_user.save();
                 
-                // delete the chatroom
-                // delete the contact from the list
-            } else if (contct_status === "false"){
-                console.log("status", contct_status)
-                // simply delete the contact
-            }
+                // find the chatroom
+                const chatroom = await Chatroom.findOne({ room_id: contct_user.contact_list[contact_user_Index].chatroom_id })
 
-            // // delete the invite from the invitations list
-            // user.contact_list.splice(indexInvite, 1);
-            // // save the updates
-            // await user.save();
+                // verify if it is found or not
+                if(!chatroom){
+                    res.status(404).json({ message: "Chat room not found" });
+                    throw new Error("Room not found");
+                }
+
+                // delete the room
+                const deleteRoom = await chatroom.deleteOne({ room_id: contct_user.contact_list[contact_user_Index].chatroom_id })
+
+                // verify if the room was deleted or not
+                if(!deleteRoom){
+                    res.status(500).json({ message: "Unable to delete the chatroom" });
+                    throw new Error("Unable to delete the chatroom");
+                }
+
+                // find the index of the contact in the contact list
+                const indexContact = await user.contact_list.findIndex(contact => contact.contact_id.toString() === contct_id.toString());
+                
+                // if the contact was found inside the list
+                if(indexContact !== -1){
+                    // delete the invite from the invitations list
+                    user.contact_list.splice(indexContact, 1);
+
+                    // save the updates
+                    await user.save();
+
+                    // send back a success response via JSON
+                    res.status(200).json({ message: "Contact deleted"})
+                }
+
+            } else if (contct_status === "false"){
+                // find the index of the contact in the contact list
+                const indexContact = await user.contact_list.findIndex(contact => contact.contact_id.toString() === contct_id.toString());
+                
+                // if the contact was found inside the list
+                if(indexContact !== -1){
+                    // delete the invite from the invitations list
+                    user.contact_list.splice(indexContact, 1);
+                
+                    // save the updates
+                    await user.save();
+                
+                    // send back a success response via JSON
+                    res.status(200).json({ message: "Contact removed"})
+                }
+            }
         }
     } catch(err){
         next(err)
