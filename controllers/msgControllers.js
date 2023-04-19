@@ -11,12 +11,14 @@ const newChatMsg = asyncHandler( async(req,res,next) => {
         // deconstruct the chatroom_id and the message wanting to be sent
         const { room_id, msg } = req.body;
 
-        // Fetch the current logged in user
+        // Fetch the current logged in user in the DB
         const user = await User.findById(req.user.id)
 
         // Check if the current user is found
         if (!user){
+            // respond back with an error message
             res.status(404).json({ message: "Unable to send the message"});
+            // throw error in the console
             throw new Error("Unable to send the new message");
         }
 
@@ -25,13 +27,17 @@ const newChatMsg = asyncHandler( async(req,res,next) => {
 
         // check if the chatroom was found
         if (!chatroom){
+            // respond back with an error message
             res.status(404).json({ message: "This chat room is unavaible"})
+            // throw error in the console
             throw new Error("Unable to find the chat room")
         }
         
         // Verify the message isn't empty ( if empty throw an error )
         if(!msg){
+            // respond back with 404 status
             res.status(401)
+            // and throw error in the console
             throw new Error("Message was empty")
         }
 
@@ -41,7 +47,7 @@ const newChatMsg = asyncHandler( async(req,res,next) => {
         // the random chat room id
         let random_id;
 
-        // make sure it is not a duplicate
+        // make sure it is not a duplicate with a do...while loop
         do {
             // Generate a chatroom_id number
             random_id = Math.floor(Math.random()*1000);
@@ -51,8 +57,11 @@ const newChatMsg = asyncHandler( async(req,res,next) => {
 
             // check if it is a duplicate or not
             if(id_duplicate !== -1){
+                // set the flag to true
                 id_flag = true;
+
             } else if(id_duplicate === -1){
+                // leave the loop
                 break;
             }
         } while(id_flag === true)
@@ -65,7 +74,7 @@ const newChatMsg = asyncHandler( async(req,res,next) => {
             _id: random_id
         }
 
-        // Add it to the array
+        // Add it to the array of messages inside the chatroom
         const addChat = await chatroom.updateOne({
             $push: {
                 messages: newMsg
@@ -74,10 +83,12 @@ const newChatMsg = asyncHandler( async(req,res,next) => {
 
         // if the chat was successfully sent
         if(addChat){
+            // respond back with success message
             res.status(200).json({ message: "message sent" });
         } else {
             // if the chat was not sent
             res.status(500).json({ message: "Unable to send the message, try again later"});
+            // throw error in the console
             throw new Error("Unable to send the message, try again later");
         }
 
@@ -105,9 +116,6 @@ const deleteChatMsg = asyncHandler( async(req,res,next) => {
 
         // find the message in the array
         const messageIndex = chatroom.messages.findIndex(msg => msg._id.toString() === chat_msg_id.toString());
-
-        console.log("The chatroom:", chatroom);
-        console.log(messageIndex);
 
         // if nothing was found
         if (messageIndex === -1) {

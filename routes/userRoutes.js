@@ -4,6 +4,9 @@ import isAuth from '../middleware/authHandler.js';
 import passport from 'passport';
 const router = express.Router();
 
+/**
+ * Routes for the registered user
+ */
 
 router.post('/register', registerUser)
 

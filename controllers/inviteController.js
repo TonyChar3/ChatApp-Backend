@@ -10,10 +10,10 @@ const allInvites = asyncHandler(async(req,res,next) => {
         // fetch the user
         const user = await User.findById(req.user.id)
 
-        // if empty send a empty contact list message back
+        // if empty send a empty invitation list message back
         if(user.invitations.length === 0){
             // send a message to notify the user the array is empty
-            res.send({ message: "Add contacts :)"})
+            res.send({ message: "No invites :)"})
         } else {
             // else send the contacts objects
             user.invitations.forEach(element => {
@@ -38,7 +38,9 @@ const acceptInvite = asyncHandler( async (req,res,next) => {
         const sender = await User.findById(sender_id)
             // make sure it is found
             if(!sender){
+                // respond back with error message
                 res.status(404).json({ message: "Sender not found" });
+                // throw a new error in the console
                 throw new Error('Sender not found...')
             }
 
@@ -46,6 +48,7 @@ const acceptInvite = asyncHandler( async (req,res,next) => {
         const user = await User.findById(req.user.id)
             // make sure it is found
             if(!user){
+                // respond back with error message
                 res.status(400).json({ message: 'You need to authenticate'})
             }
 
@@ -64,9 +67,12 @@ const acceptInvite = asyncHandler( async (req,res,next) => {
             // make sure it is unique (By looking in the chatroom DB)
             const room_duplicate = await Chatroom.findOne({ room_id: random_id })
 
-            // check if it is a duplicate or not
+            // check if it is a duplicate
             if(room_duplicate){
+
+                // set the flag to true
                 room_flag = true;
+
             } else if(room_duplicate === null){
                 break;
             }
@@ -77,7 +83,9 @@ const acceptInvite = asyncHandler( async (req,res,next) => {
 
         // if nothing was found
         if (contactIndex === -1) {
+            // respond back with error message
             res.status(404).json({ message: "Error...user non-existant" });
+            // throw a new Error inside the console
             throw new Error("Error...user non-existant");
         }
 
@@ -89,8 +97,6 @@ const acceptInvite = asyncHandler( async (req,res,next) => {
 
         // Save the updated values
         await sender.save();
-
-        console.log("after delt", sender.contact_list)
 
         // Add the sender as contact
         const newContact = {
@@ -124,15 +130,24 @@ const acceptInvite = asyncHandler( async (req,res,next) => {
         // find the index of the invite
         const indexInvite = await user.invitations.findIndex(contact => contact.sender_id.toString() === sender.id.toString());
 
+        // if the index is found
         if(indexInvite !== -1){
+
             // delete the invite from the invitations list
             user.invitations.splice(indexInvite, 1);
+
             // save the updates
             await user.save();
+
+        } else if(indexInvite === -1){
+
+            // respond back with error message
+            res.status(404).json({ message: "index not found"})
         }
     
         // Send back a success message
         if(room && addContact){
+            // respond back with success message
             res.status(201).json({ message: "Invite accepted, chatroom created" });
         }
     } catch(err){
@@ -152,9 +167,11 @@ const declineInvite = asyncHandler( async (req,res,next) => {
         // Fetch the sender info from the db
         const sender = await User.findById(sender_id)
 
-        // make sure it is found
+        // if nothing is found
         if(!sender){
+            // respond back with error message
             res.status(404).json({ message: "Sender not found" });
+            // throw a new error inside the console
             throw new Error('Sender not found...')
         }
 
@@ -163,6 +180,7 @@ const declineInvite = asyncHandler( async (req,res,next) => {
 
         // make sure it is found
         if(!user){
+            // respond back with error message
             res.status(400).json({ message: 'You need to authenticate'})
         }
 
@@ -171,7 +189,9 @@ const declineInvite = asyncHandler( async (req,res,next) => {
 
         // if nothing was found
         if (contactIndex === -1) {
+            // respond back with error message
             res.status(404).json({ message: "Error...user non-existant" });
+            // throw a new error inside the console
             throw new Error("Error...user non-existant");
         }
 
@@ -181,18 +201,20 @@ const declineInvite = asyncHandler( async (req,res,next) => {
         // Save the updated values
         await sender.save();
 
-        // delete the invite
         // find the index of the invite
         const indexInvite = await user.invitations.findIndex(contact => contact.sender_id.toString() === sender.id.toString());
 
+        // if an index was found
         if(indexInvite !== -1){
+
             // delete the invite from the invitations list
             user.invitations.splice(indexInvite, 1);
+
             // save the updates
             await user.save();
         }
 
-        // send message
+        // send a success message back
         res.status(200).json({ message: `Invite from ${sender.username} declined` })
 
     } catch(err){

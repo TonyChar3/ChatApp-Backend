@@ -1,5 +1,9 @@
 import Constant from "../constants.js";
 
+/**
+ * To handle the error from every async routes using the codes constants
+ */
+
 const errorHandler = (err, req, res, next) => {
 
     const statusCode = res.statusCode ? res.statusCode : 500;

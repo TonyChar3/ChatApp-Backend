@@ -4,13 +4,14 @@ import User from '../models/userModels.js';
 import bcrypt from 'bcrypt';
 
 const Fields = {
-    usernameField: 'email',
-    passwordField: 'password'
+    // What to use in the request for the authentication
+    usernameField: 'email',// req.body.email
+    passwordField: 'password'// req.body.password
 }
 
 const verifyCallBack = async (username, password, done) => {
     try{
-        // Find the user using the email
+        // Find the user in the DB using the email
         const user = await User.findOne({ email: username });
 
         // verify if a user was found
@@ -18,7 +19,7 @@ const verifyCallBack = async (username, password, done) => {
             return done(null, false, { message: 'Incorrect email'})
         }
 
-        // Verify the password
+        // Verify the password hash using bcrypt
         const isMatch = await bcrypt.compare(password, user.password)
 
         // check if the the password match
@@ -34,10 +35,11 @@ const verifyCallBack = async (username, password, done) => {
     }
 };
 
-passport.use(new LocalStrategy(Fields, verifyCallBack));
+passport.use(new LocalStrategy(Fields, verifyCallBack));// Using passport JS LocalStrategy for authentication
 
 // Serialize the user from the session
 passport.serializeUser((user,done) => {
+    // return the user id
     done(null, user.id);
 });
 
@@ -46,6 +48,7 @@ passport.deserializeUser( async(id, done) => {
     try{
         // Find the user by ID
         const user = await User.findById(id);
+        // return the whole user
         done(null, user);
     } catch(err) {
         done(err);

@@ -61,7 +61,7 @@ const registerUser = asyncHandler( async (req,res, next) => {
 //@route GET /user/logout
 //@access public
 const logoutUser = asyncHandler( async(req,res,next) => {
-
+    // logout solution with passportJS localstrategy
     try{
         req.logout(function(err){
             if(err) { return next(err); }

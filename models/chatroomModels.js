@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
 
+/**
+ * Chatroom mongoose Schema
+ */
+
 const chatroomSchema = mongoose.Schema({
     room_id: {
         type: Number,
