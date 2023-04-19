@@ -1,5 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import https from 'https';
+import path from 'path';
+import fs from 'fs';
 import connectDB from './config/dbConnection.js';
 import errorHandler from './middleware/errorHandler.js';
 import userRoutes from './routes/userRoutes.js';
@@ -10,6 +13,9 @@ import expSession from 'express-session';
 import { default as connectMongoDBSession } from 'connect-mongodb-session';
 import passport from 'passport';
 import confPassport from './config/passport.js';
+import { fileURLToPath } from 'url';
+import cors from 'cors';
+import helmet from 'helmet';
 
 dotenv.config();
 connectDB();
@@ -19,6 +25,8 @@ const app = express();
 const port = process.env.PORT || 5002;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(helmet());
+app.use(cors());
 
 /**
  * Connect the Session store with the DB
@@ -63,7 +71,15 @@ app.use("/invitations", inviteRoute);
 app.use("/chat", msgRoutes);
 app.use(errorHandler);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+const sslServer = https.createServer({
+    key: fs.readFileSync(path.join(__dirname, 'cert', 'key.pem')),
+    cert: fs.readFileSync(path.join(__dirname, 'cert', 'cert.pem'))
+}, app);
+
+
+sslServer.listen(port, () => {
+    console.log(`Secure server is running on port ${port}`);
 });

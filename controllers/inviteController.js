@@ -2,6 +2,28 @@ import asyncHandler from 'express-async-handler';
 import User from '../models/userModels.js';
 import Chatroom from '../models/chatroomModels.js';
 
+//@desc See all of the received invites
+//@route GET /invitations/invites
+// access private
+const allInvites = asyncHandler(async(req,res,next) => {
+    try{
+        // fetch the user
+        const user = await User.findById(req.user.id)
+
+        // if empty send a empty contact list message back
+        if(user.invitations.length === 0){
+            // send a message to notify the user the array is empty
+            res.send({ message: "Add contacts :)"})
+        } else {
+            // else send the contacts objects
+            user.invitations.forEach(element => {
+                res.send(element)
+            });
+        }
+    } catch(err){
+        next(err)
+    }
+});
 
 //@desc Accept the invitation
 //@route DELETE /invitations/accept
@@ -178,4 +200,4 @@ const declineInvite = asyncHandler( async (req,res,next) => {
     }
 });
 
-export { acceptInvite, declineInvite };
+export { acceptInvite, declineInvite, allInvites };
